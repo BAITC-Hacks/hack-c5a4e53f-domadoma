@@ -6,7 +6,10 @@ FastAPI + SQLite backend для Career Quest. Python 3.12; UI и recommendation 
 **Текущее состояние:** backend подключён к AI engine/service из `3f45c46`.
 Работают профиль, рекомендации, Complete с пересчётом навыков/readiness и HR.
 Без OPENAI_API_KEY рекомендации работают в явно обозначенном fallback-режиме.
-Frontend пока отсутствует. Старый черновик в `work/` в сборку не входит.
+Frontend добавлен: вход, профиль, рекомендации, Complete, история, HR и импорт.
+Сборка интерфейса: `cd frontend`, `npm ci`, `npm run build`; затем backend
+раздаёт `frontend/dist` на своём адресе. Локально сейчас http://127.0.0.1:8765.
+Подробнее: [docs/frontend.md](docs/frontend.md). Старый черновик в `work/` в сборку не входит.
 
 ## Итоговый запуск после интеграции
 
@@ -23,7 +26,7 @@ Frontend пока отсутствует. Старый черновик в `work
 
 Адрес: http://localhost:8000. Swagger: http://localhost:8000/docs.
 Один контейнер раздаёт API и SPA; SQLite сохраняется в named volume.
-Dockerfile пока не проверен полной сборкой: нет файлов frontend и доступного Docker daemon.
+Полная Docker-сборка пока не проверена. Production-сборка frontend проверена отдельно.
 
 ## Разработка backend отдельно
 
