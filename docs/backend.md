@@ -1,9 +1,11 @@
 # Backend / Integration
 
 Ветка: `feat/backend-core`. Контракт: приложенный «Промпт №2», v1.
-Новые `docs/contracts.md`, `docs/architecture.md`, `docs/task.md`,
-`docs/source_notes.md`, `data/` и `backend/recommendation/engine.py` пока отсутствуют
-локально и не найдены в основной ветке GitHub. Замороженные файлы не создаём.
+При первоначальной реализации общие документы и AI engine отсутствовали.
+После объединения с `main` (`f5059e1`) доступны `docs/contracts.md`,
+`docs/architecture.md`, `docs/task.md`, `docs/source_notes.md`, `data/` и
+`backend/recommendation/engine.py`. Замороженные файлы получены без правок.
+`service.py`, `requirements-ai.txt`, frontend и README исходного engine пока отсутствуют.
 
 ## План и журнал
 
@@ -73,10 +75,11 @@ Snapshot содержит `skills`, `profiles` с ключами `(role,grade)`,
 
 ## Что осталось для командной интеграции
 
-- Получить пути к новым общим документам, `data/`, `backend/recommendation/`
-  и `frontend/`; они не найдены локально или на default branch GitHub.
-- Проверить настоящий конструктор Data и формы hr_view; текущий адаптер
-  опирается на приложенный контракт, а не проверку отсутствующего исходника.
+- Общие документы, `data/` и исходный engine получены из main. Получить AI
+  `service.py`, `requirements-ai.txt`, frontend и недостающие README набора/engine.
+- Поля конструктора Data сверены с полученным engine; проверить сквозной вызов
+  service и формы hr_view после подключения AI. Исходные AI-тесты ещё используют
+  старые импорты/пути; их адаптация относится к области AI-разработчика.
 - Согласовать два completion hooks выше и политику reimport с demo-отметками;
   проверить реальный gain ровно один раз, capped gain, prerequisites,
   same-day review, readiness и HR participation без дублирования.

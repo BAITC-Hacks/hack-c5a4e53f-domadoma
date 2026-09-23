@@ -4,8 +4,9 @@ FastAPI + SQLite backend для Career Quest. Python 3.12; UI и recommendation 
 разрабатываются отдельно. Полный контракт и граница интеграции: [docs/backend.md](docs/backend.md).
 
 **Текущее состояние:** хранение, импорт, demo auth и HTTP-маршруты реализованы.
-`backend/recommendation/`, `frontend/`, `data/` и новые общие docs пока отсутствуют
-в этом checkout. Без AI-модуля health возвращает `degraded`, расчётные маршруты
+После обновления из `main` доступны общие docs, `data/` и исходный
+`backend/recommendation/engine.py`. Пока отсутствуют AI `service.py`,
+`requirements-ai.txt` и `frontend/`. Без AI service health возвращает `degraded`, расчётные маршруты
 отвечают 503. Это не полноценное AI-демо. Старый черновик в `work/` в сборку не входит.
 
 ## Итоговый запуск после интеграции
@@ -32,8 +33,8 @@ Dockerfile пока не проверен полной сборкой: нет ф
 ```powershell
 python -m venv backend/.venv
 .\backend\.venv\Scripts\python.exe -m pip install -r backend/requirements-dev.txt
-# В текущем checkout исходный набор лежит здесь:
-$env:DATA_DIR = "work/karim312k1"
+# Общий исходный набор из main:
+$env:DATA_DIR = "data"
 $env:JWT_SECRET = [System.Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(48))
 $env:DEMO_PASSWORD = "choose-a-private-demo-password"
 .\backend\.venv\Scripts\python.exe -m uvicorn backend.main:app --reload
@@ -111,4 +112,5 @@ Python-зависимостей зафиксированы в requirements; AI-�
 Это demo auth, без регистрации/refresh/SSO и без заявления о production-защите.
 
 Источники: синтетический набор Career Quest v1.0 и его README.ru.md; пользовательский
-контракт Backend/Integration v1. Сторонний engine пока не получен и не скопирован.
+контракт Backend/Integration v1. Исходный engine получен из main вместе с общими
+документами. AI service и его интеграционные проверки ещё ожидаются.

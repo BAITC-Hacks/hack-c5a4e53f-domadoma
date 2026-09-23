@@ -1,3 +1,4 @@
+# Environment
 .env
 .env.*
 !.env.example
@@ -14,3 +15,17 @@ runtime/
 **/dist/
 **/.coverage
 **/htmlcov/
+# Additional Python environments
+venv/
+
+# Additional SQLite files
+*.sqlite
+*.sqlite-*
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
