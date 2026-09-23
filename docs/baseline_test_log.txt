@@ -1,0 +1,6 @@
+Source archive: files.zip
+Only original engine unit tests; test directory layout restored in an isolated review copy.
+Commands: python tests/make_fixtures.py && python -m pytest -q tests
+...... [100%]
+6 passed in 0.32s
+Not tested here: FastAPI, auth, SQLite integration, UI, OpenAI live calls, Docker, hidden jury profiles.
