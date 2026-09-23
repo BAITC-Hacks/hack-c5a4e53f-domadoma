@@ -1,0 +1,19 @@
+{
+  "employees": [
+    {
+      "employee_id": "TEST_001",
+      "full_name": "Demo Employee",
+      "department": "Backend Development",
+      "role": "Backend Engineer",
+      "grade": "Junior",
+      "manager_id": null,
+      "hire_date": "2026-01-01",
+      "tenure_months": 9,
+      "work_format": "hybrid",
+      "preferred_language": "ru",
+      "career_goal": {"target_role": "Backend Engineer", "target_grade": "Middle"},
+      "skills": {},
+      "last_review_date": "2026-09-01"
+    }
+  ]
+}

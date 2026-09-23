@@ -34,6 +34,7 @@ class Data:
     events: dict = field(default_factory=dict)        # event_id -> event
     history: list = field(default_factory=list)       # list[dict]
     as_of: date = date(2026, 10, 1)
+    prior: float = 0.7
 
     # --- загрузка файлов в формате датасета; повторные вызовы дополняют данные
     def load_skills(self, path):
@@ -170,20 +171,19 @@ def engagement(data, emp_id):
     return stats
 
 
-GLOBAL_PRIOR = 0.7   # пересчитывается в calibrate()
+GLOBAL_PRIOR = 0.7   # legacy default for direct likelihood() callers
 
 
 def calibrate(data):
-    global GLOBAL_PRIOR
     vol = [r for r in data.history if not data.events[r["event_id"]]["mandatory"] and r["status"] != "in_progress"]
     if vol:
-        GLOBAL_PRIOR = sum(r["status"] == "completed" for r in vol) / len(vol)
+        data.prior = sum(r["status"] == "completed" for r in vol) / len(vol)
 
 
-def likelihood(stats, ev):
+def likelihood(stats, ev, prior=None):
     """Вероятность, что сотрудник реально пройдёт активность. Иерархия: общий уровень →
     навыки → формат/тип → само событие. Отказы по похожим активностям снижают оценку."""
-    base = _rate(stats["all"][0], stats["all"][1], GLOBAL_PRIOR)
+    base = _rate(stats["all"][0], stats["all"][1], GLOBAL_PRIOR if prior is None else prior)
     parts, reasons = [], []
     for d in ev["develops_skills"]:
         b = stats["skill"].get(d["skill_id"])
@@ -244,7 +244,7 @@ def recommend(data: Data, emp_id, k=3, extra_completed=()):
                             "value": sum(c["weight"] * c["closes"] for c in closes)})
             continue
         impact = sum(c["weight"] * c["closes"] for c in closes) / total_gap
-        p, pinfo = likelihood(stats, ev)
+        p, pinfo = likelihood(stats, ev, data.prior)
         cands.append({"event": ev, "closes": closes, "impact": impact, "likelihood": p,
                       "likelihood_detail": pinfo, "score": impact * p,
                       "in_progress": ev["event_id"] in in_progress,
@@ -337,7 +337,7 @@ def explain(data, emp, c, gaps, tgt, source, total_gap):
     return {
         "event_id": ev["event_id"], "title": ev["title"], "type": ev["type"], "format": ev["format"],
         "duration_hours": ev["duration_hours"], "next_session": c["next_session"],
-        "score": round(c["score"], 3), "impact": round(c["impact"], 3),
+        "score": round(c["score"], 3), "raw_score": c["score"], "impact": round(c["impact"], 3),
         "likelihood": round(c["likelihood"], 2),
         "closes": [{"skill_id": x["skill_id"], "name": x["name"], "from": x["have"],
                     "to": x["have"] + x["closes"], "required": x["required"],

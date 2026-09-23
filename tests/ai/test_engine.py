@@ -1,13 +1,17 @@
-import sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent))
-import engine, pytest
+import runpy
 
-DATA = Path(__file__).parent.parent / "data"
+import pytest
+
+from backend.recommendation import engine
+
+DATA = Path(__file__).parents[2] / "data"
 FIX = Path(__file__).parent / "fixtures"
 
 @pytest.fixture(scope="module")
 def d():
+    if not (FIX / "employees.json").exists():
+        runpy.run_path(str(Path(__file__).with_name("make_fixtures.py")))
     data = engine.Data.from_dir(DATA)
     # загрузка дополнительных профилей и истории — как на защите
     assert data.load_employees(FIX / "employees.json") == []
@@ -60,3 +64,21 @@ def test_rules_on_full_dataset(d):
             assert x["event_id"] not in done or x["event_id"] in engine.RECURRING
             assert all(r["skills"].get(s, 0) >= v for s, v in ev["prerequisites"].items())
             assert 1 <= len(r["recommendations"]) <= 3
+
+
+def test_calibration_is_isolated_per_snapshot():
+    first = engine.Data(
+        events={"EV": {"event_id": "EV", "mandatory": False, "develops_skills": [], "format": "online", "type": "workshop"}},
+        history=[{"employee_id": "E1", "event_id": "EV", "status": "completed", "date": "2026-01-01"}],
+    )
+    second = engine.Data(
+        events={"EV": {"event_id": "EV", "mandatory": False, "develops_skills": [], "format": "online", "type": "workshop"}},
+        history=[{"employee_id": "E2", "event_id": "EV", "status": "no_show", "date": "2026-01-01"}],
+    )
+
+    engine.calibrate(first)
+    first_rate = engine.likelihood(engine.engagement(first, "E1"), first.events["EV"], first.prior)[0]
+    engine.calibrate(second)
+    second_rate = engine.likelihood(engine.engagement(first, "E1"), first.events["EV"], first.prior)[0]
+
+    assert first_rate == second_rate
