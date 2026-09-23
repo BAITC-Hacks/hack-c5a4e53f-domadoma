@@ -45,6 +45,11 @@ $env:DEMO_PASSWORD = "choose-a-private-demo-password"
 Uvicorn в этом режиме использует переменные окружения; `.env` автоматически
 читает только Compose. Для frontend dev использовать Vite proxy `/api` → `http://localhost:8000`.
 
+Для проверки OpenAI перед запуском Uvicorn задайте `OPENAI_API_KEY` в окружении
+своего терминала и `$env:OPENAI_MODEL = "gpt-4.1"`. У каждого участника свой
+локальный ключ: `.env` в Git не передаётся. Если порт 8000 занят, добавьте
+к команде Uvicorn `--port 8765`; Swagger будет на http://127.0.0.1:8765/docs.
+
 ## Demo-аккаунты и API
 
 Логины: `employee`, `hr`, `admin`. На первом запуске всем задаётся `DEMO_PASSWORD`,
@@ -108,8 +113,10 @@ Python-зависимостей зафиксированы в requirements; AI-�
 
 Проверены реальные gain/readiness, HR, fallback, повтор Complete и состояние
 после рестарта. HTTP smoke: E0002 + EV_005 → System Design 1 → 2,
-readiness 62 → 66, revision 1 → 2. Успешный LLM-путь проверен только с тестовым
-селектором; live API по просьбе пользователя не вызывался.
+readiness 62 → 66, revision 1 → 2. Отдельно выполнен реальный HTTP-запрос через
+backend к OpenAI (`gpt-4.1`): `source=llm`, `fallback_reason=null`,
+2 рекомендации для E0002. Health, login и профиль вернули 200;
+доступ employee к чужому профилю — 403. Подробнее: [docs/backend.md](docs/backend.md).
 Подтверждённые вопросы к качеству AI-объяснений и локализации перечислены
 в [docs/backend.md](docs/backend.md). Backend ограничивает запрос 8 секундами.
 Это demo auth, без регистрации/refresh/SSO и без заявления о production-защите.

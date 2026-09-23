@@ -24,8 +24,8 @@ OPENAI_API_KEY/OPENAI_MODEL доступны только серверу. Без
 возвращает source=fallback, fallback_reason=llm_unavailable при наличии
 кандидатов. Backend не реализует отдельный LLM или scoring.
 Крайний таймаут backend — 8 секунд; при превышении возвращается 504.
-Успешный source=llm проверен только с тестовым селектором. Реального сетевого
-LLM-вызова здесь не было по прямому указанию пользователя.
+Успешный source=llm проверен автоматическим тестом с подменой селектора и
+отдельным реальным HTTP-запросом через backend к OpenAI с разрешения пользователя.
 
 ## Complete и отсутствие двойного прироста
 
@@ -73,9 +73,9 @@ reconciliation: не угадываем, включены ли уже завер
 Команды из корня в текущем окружении:
 
 ```powershell
-.\work\karim312k1\backend\.venv\Scripts\python.exe -m pip install -r backend/requirements.txt
-.\work\karim312k1\backend\.venv\Scripts\python.exe -m pip check
-.\work\karim312k1\backend\.venv\Scripts\python.exe -m pytest tests/backend tests/ai -q
+.\backend\.venv\Scripts\python.exe -m pip install -r backend/requirements.txt -r backend/requirements-dev.txt
+.\backend\.venv\Scripts\python.exe -m pip check
+.\backend\.venv\Scripts\python.exe -m pytest tests/backend tests/ai -q
 ```
 
 Результат: **40 passed**, Python 3.13.5; pip check: No broken requirements.
@@ -95,6 +95,19 @@ SDK из requirements AI: openai 1.109.1. Предупреждение Starlette
 SQLite: profile/recommendations/complete/new recommendations → четыре 200.
 E0002 + EV_005: System Design 1 → 2, readiness 62 → 66, revision 1 → 2.
 В следующей рекомендации EV_005 отсутствует; source=fallback.
+
+Реальный HTTP smoke выполнен 2026-09-23 через Uvicorn на порту 8765
+(порт 8000 занят другим локальным сервисом), с отдельной SQLite и моделью
+`gpt-4.1`. Проверялся backend без frontend:
+
+- `GET /api/health` → 200, `status=ok`, `recommendation_module=available`.
+- Login employee и профиль E0002 → 200; чужой профиль → 403.
+- `GET /api/employees/E0002/recommendations?lang=ru` → 200,
+  `source=llm`, `fallback_reason=null`, `state_revision=1`.
+- Получены 2 рекомендации: EV_005 и EV_038; HTTP-запрос занял около 7,7 с.
+
+Это один успешный внешний вызов, не гарантия времени ответа или качества
+всех объяснений. Ключ хранится только локально и не входит в репозиторий.
 
 Независимое ревью backend-адаптера конкретных дефектов не обнаружило.
 
@@ -120,5 +133,4 @@ E0002 + EV_005: System Design 1 → 2, readiness 62 → 66, revision 1 → 2.
 
 Frontend отсутствует в этой ветке: финальная Docker-сборка и браузерный сценарий
 не проверены. Целевой Python 3.12 тоже ещё не проверен локально.
-Live OpenAI не выполнялся: пользователь выбрал отсутствие платных операций.
 Старые файлы в work/ и временная копия AI-ветки в runtime/ не входят в сборку.
