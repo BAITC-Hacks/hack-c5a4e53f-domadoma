@@ -9,7 +9,9 @@ FastAPI + SQLite backend для Career Quest. Python 3.12; UI и recommendation 
 Frontend добавлен: вход, профиль, рекомендации, Complete, история, HR и импорт.
 Сборка интерфейса: `cd frontend`, `npm ci`, `npm run build`; затем backend
 раздаёт `frontend/dist` на своём адресе. Локально сейчас http://127.0.0.1:8765.
-Подробнее: [docs/frontend.md](docs/frontend.md). Старый черновик в `work/` в сборку не входит.
+Основной интерфейс команды: [frontend/README.md](frontend/README.md).
+Наш альтернативный вариант сохранён в `frontend-preview/`: [docs/frontend.md](docs/frontend.md).
+Старый черновик в `work/` в сборку не входит.
 
 ## Итоговый запуск после интеграции
 
