@@ -142,8 +142,8 @@ class NoRecommendation(Model):
     employee_id: Identifier
     role: str
     grade: Grade
-    open_gaps: int
-    blocked_by_prereq: int
+    open_gaps: list[Identifier]
+    blocked_by_prereq: list[dict[str, Any]]
 
 
 class Participation(Model):

@@ -1,7 +1,6 @@
 import asyncio
 import logging
 import sqlite3
-import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Annotated, Literal
@@ -173,7 +172,6 @@ def create_app(settings=None, *, repository=None, domain=None):
     @app.get("/api/employees/{employee_id}/recommendations", response_model=RecommendationResponse)
     async def recommendations(employee_id: str, user: User, lang: Annotated[Literal["ru", "kk", "en"] | None, Query()] = None):
         require_employee(user, employee_id)
-        started = time.perf_counter()
         try:
             async with asyncio.timeout(app.state.settings.recommendation_timeout):
                 snap = await run_in_threadpool(snapshot_for, employee_id)
@@ -189,7 +187,6 @@ def create_app(settings=None, *, repository=None, domain=None):
             raise AppError("engine_contract_error", "Invalid domain recommendation response", status=502) from exc
         if response.employee_id != employee_id or response.state_revision != snap.state_revision or response.language != language:
             raise AppError("engine_contract_error", "Domain response does not match requested snapshot", status=502)
-        response.duration_ms = round((time.perf_counter() - started) * 1000, 2)
         return response
 
     @app.post("/api/employees/{employee_id}/activities/{event_id}/complete", response_model=CompletionResponse)

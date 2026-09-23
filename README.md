@@ -3,11 +3,10 @@
 FastAPI + SQLite backend для Career Quest. Python 3.12; UI и recommendation engine
 разрабатываются отдельно. Полный контракт и граница интеграции: [docs/backend.md](docs/backend.md).
 
-**Текущее состояние:** хранение, импорт, demo auth и HTTP-маршруты реализованы.
-После обновления из `main` доступны общие docs, `data/` и исходный
-`backend/recommendation/engine.py`. Пока отсутствуют AI `service.py`,
-`requirements-ai.txt` и `frontend/`. Без AI service health возвращает `degraded`, расчётные маршруты
-отвечают 503. Это не полноценное AI-демо. Старый черновик в `work/` в сборку не входит.
+**Текущее состояние:** backend подключён к AI engine/service из `3f45c46`.
+Работают профиль, рекомендации, Complete с пересчётом навыков/readiness и HR.
+Без OPENAI_API_KEY рекомендации работают в явно обозначенном fallback-режиме.
+Frontend пока отсутствует. Старый черновик в `work/` в сборку не входит.
 
 ## Итоговый запуск после интеграции
 
@@ -24,7 +23,7 @@ FastAPI + SQLite backend для Career Quest. Python 3.12; UI и recommendation 
 
 Адрес: http://localhost:8000. Swagger: http://localhost:8000/docs.
 Один контейнер раздаёт API и SPA; SQLite сохраняется в named volume.
-Dockerfile пока не проверен полной сборкой: нет файлов frontend/AI и доступного Docker daemon.
+Dockerfile пока не проверен полной сборкой: нет файлов frontend и доступного Docker daemon.
 
 ## Разработка backend отдельно
 
@@ -32,7 +31,7 @@ Dockerfile пока не проверен полной сборкой: нет ф
 
 ```powershell
 python -m venv backend/.venv
-.\backend\.venv\Scripts\python.exe -m pip install -r backend/requirements-dev.txt
+.\backend\.venv\Scripts\python.exe -m pip install -r backend/requirements.txt -r backend/requirements-dev.txt
 # Общий исходный набор из main:
 $env:DATA_DIR = "data"
 $env:JWT_SECRET = [System.Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(48))
@@ -42,7 +41,7 @@ $env:DEMO_PASSWORD = "choose-a-private-demo-password"
 
 На Windows PowerShell 5.1 вместо `GetBytes(48)` можно задать секрет,
 сгенерированный приведённой выше Python-командой. Секрет не коммитить.
-При наличии AI-модуля установить `-r backend/requirements.txt` дополнительно.
+Для запуска без платных вызовов оставьте OPENAI_API_KEY незаданным или пустым.
 Uvicorn в этом режиме использует переменные окружения; `.env` автоматически
 читает только Compose. Для frontend dev использовать Vite proxy `/api` → `http://localhost:8000`.
 
@@ -91,26 +90,31 @@ Complete: JSON `{"occurrence_key":null}`, заголовок `Idempotency-Key` �
 
 SQLite загружает исходный набор только один раз. Модельная дата берётся из набора:
 `2026-10-01`; JWT и системные timestamps используют реальные часы. Не удаляйте
-volume/SQLite для обычного рестарта. Без working AI-модуля Complete отклоняется до записи.
+volume/SQLite для обычного рестарта. Complete использует локальный движок и не ждёт LLM.
 
 ## Проверки и ограничения
 
 ```powershell
-.\backend\.venv\Scripts\python.exe -m pytest tests/backend -q
+.\backend\.venv\Scripts\python.exe -m pytest tests/backend tests/ai -q
 ```
 
 Тесты используют синтетический исходный набор из `data/` или текущего `work/karim312k1/`.
-HTTP-тесты используют **тестовый DomainDouble**, не OpenAI и не реальную математику
-навыков. Ни ключ, ни платные запросы для них не нужны. Проверенные версии прямых
+Часть HTTP-тестов использует тестовый DomainDouble; интеграционные тесты
+`test_ai_integration.py` используют настоящий engine/service и SQLite.
+Результат: **40 passed**. Ключ и платные запросы не нужны. Проверенные версии прямых
 Python-зависимостей зафиксированы в requirements; AI-зависимости принадлежат напарнику.
 Локальные проверки сейчас выполняются Python 3.13.5; Python 3.12 и полный Docker
 остаются интеграционными проверками.
 
-Реальные skill gain/readiness, HR-агрегаты, baseline/LLM fallback, RU/KK-объяснения
-и задержка AI будут проверяться с engine/service. Отказ внешней модели должен
-обрабатываться fallback внутри AI service; backend ограничивает запрос 8 секундами.
+Проверены реальные gain/readiness, HR, fallback, повтор Complete и состояние
+после рестарта. HTTP smoke: E0002 + EV_005 → System Design 1 → 2,
+readiness 62 → 66, revision 1 → 2. Успешный LLM-путь проверен только с тестовым
+селектором; live API по просьбе пользователя не вызывался.
+Подтверждённые вопросы к качеству AI-объяснений и локализации перечислены
+в [docs/backend.md](docs/backend.md). Backend ограничивает запрос 8 секундами.
 Это demo auth, без регистрации/refresh/SSO и без заявления о production-защите.
 
 Источники: синтетический набор Career Quest v1.0 и его README.ru.md; пользовательский
 контракт Backend/Integration v1. Исходный engine получен из main вместе с общими
-документами. AI service и его интеграционные проверки ещё ожидаются.
+документами. AI service подключён из коммита напарника 3f45c46 без изменения
+его исходников и общего контракта.
